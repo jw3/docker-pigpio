@@ -1,0 +1,20 @@
+sudo: required
+language: bash
+services:
+  - docker
+
+script:
+  - docker run --rm --privileged multiarch/qemu-user-static:register --reset
+  - docker build -t jwiii/pigpio .
+
+after_success:
+  - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+  - |
+    if [[ "$TRAVIS_BRANCH" == "master" ]]; then
+      echo "push image as latest"
+      docker push jwiii/pigpio
+    else
+      echo "push image as $TRAVIS_BRANCH"
+      docker tag jwiii/pigpio jwiii/pigpio:$TRAVIS_BRANCH
+      docker push jwiii/pigpio:$TRAVIS_BRANCH
+    fi
